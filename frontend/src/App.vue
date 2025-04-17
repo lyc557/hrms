@@ -4,10 +4,13 @@
     <el-upload
       class="upload-demo"
       drag
-      action=""
-      :auto-upload="false"
+      :action="UPLOAD_API"
+      :auto-upload="true"
+      :file-list="fileList"
       :on-change="handleFileChange"
+      :before-upload="beforeUpload"
       multiple
+      accept=".pdf,.docx"
     >
       <el-icon class="el-icon--upload"><upload-filled /></el-icon>
       <div class="el-upload__text">
@@ -43,22 +46,57 @@
 <script setup>
 import { ref } from 'vue';
 import { UploadFilled } from '@element-plus/icons-vue';
+import axios from 'axios';
+import { ElMessage } from 'element-plus';
+
+// 从环境变量获取后端地址
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const UPLOAD_API = `${API_BASE_URL}/api/upload`;
+const ANALYZE_API = `${API_BASE_URL}/api/analyze`;
 
 const jobDescription = ref('');
 const showResults = ref(false);
 const candidates = ref([]);
+const fileList = ref([]);
 
-const handleFileChange = (file) => {
-  console.log('上传文件:', file);
+const handleFileChange = (file, files) => {
+  fileList.value = files;
+  const formData = new FormData();
+  formData.append('file', file.raw);
+  
+  axios.post(UPLOAD_API, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }).then(response => {
+    console.log('上传成功:', response.data);
+  }).catch(error => {
+    console.error('上传失败:', error);
+    fileList.value = fileList.value.filter(f => f.uid !== file.uid);
+  });
 };
 
 const analyzeResumes = () => {
-  // 模拟数据
-  candidates.value = [
-    { name: '张三', score: '85%', skills: 'Python, Java' },
-    { name: '李四', score: '78%', skills: 'JavaScript, React' },
-  ];
-  showResults.value = true;
+  axios.post(ANALYZE_API, {
+    job_description: jobDescription.value
+  }).then(response => {
+    candidates.value = response.data;
+    showResults.value = true;
+  }).catch(error => {
+    console.error('分析失败:', error);
+  });
+};
+
+const beforeUpload = (file) => {
+  const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  const isAllowed = allowedTypes.includes(file.type);
+  
+  if (!isAllowed) {
+    ElMessage.error('只支持上传PDF和DOCX格式的文件');
+    return false;
+  }
+  
+  return true;
 };
 </script>
 

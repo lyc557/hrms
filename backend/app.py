@@ -55,8 +55,8 @@ def extract_skills(text):
 app = Flask(__name__)
 CORS(app)
 
-# 初始化模型
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+# 初始化模型 使用中文向量化模型
+model = SentenceTransformer('BAAI/bge-large-zh-v1.5')
 
 def parse_pdf(file_path):
     """解析PDF简历并提取关键字段"""

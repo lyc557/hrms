@@ -16,11 +16,20 @@
 4. 可视化展示
 
 ## 快速开始
+
+``` bash
+conda create --name myenv python=3.12
+conda activate myenv
+```
 ```bash
 # 前端
 cd frontend
 npm install
 npm run dev
+
+npm install @vitejs/plugin-vue 
+npm install vite@latest
+npm install @vitejs/plugin-vue@latest
 
 # 后端
 cd backend
